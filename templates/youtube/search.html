@@ -1,0 +1,68 @@
+{% extends 'youtube/base.html' %}
+{% load extra_filters %}
+{% load humanize %}
+
+{% block title %} Video result {% endblock %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-xs-8 col-xs-offset-2">
+            <form action="{% url 'search' %}" method="get" role="search">
+                <div class="input-group">
+                    <div class="input-group-btn search-panel">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <span id="search_concept">relavency</span> <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="#published">published</a></li>
+                            <li><a href="#viewCount">viewcount</a></li>
+                            <li class="divider"></li>
+                            <li><a href="#all">relavency</a></li>
+                        </ul>
+                    </div>
+                    <input type="hidden" name="search_param" value="all" id="search_param">
+                    <input type="text" class="form-control" name="q" placeholder="Search term...">
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-search"></span>
+                    </button>
+                </span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-12">
+            {% if result %}
+                <ul>
+                    {% for entry in result %}
+                        <div class="col-sm-6 col-md-4">
+                            <div class="thumbnail">
+                                <img src=" {{ entry.media.thumbnail.0.url }} ">
+
+                                <div class="caption">
+                                    <h4><a href="../video/{{ entry.id.text|getid }}">{{ entry.media.title.text }}</a>
+                                    </h4>
+                                    <ul class="list-unstyled list-inline">
+                                        <li><span class="glyphicon glyphicon-calendar" aria-hidden="true"></span> {{ entry.published.text }}</li>
+                                        <li><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> {{ entry.statistics.view_count|intcomma }}</li>
+                                    </ul>
+                                    <p>{{ entry.media.description.text }}</p>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No polls are available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}

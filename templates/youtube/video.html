@@ -1,0 +1,118 @@
+{% extends 'youtube/base.html' %}
+{% load extra_filters %}
+{% load humanize %}
+{% load staticfiles %}
+
+{% block title %} Video result {% endblock %}
+
+{% block content %}
+
+    {% if video %}
+    <div class="row">
+    <h1>{{ video.media.title.text }}</h1>
+    <div class="embed-responsive embed-responsive-16by9">
+        <iframe src="http://www.youtube.com/embed/{{ video_id }}"></iframe>
+    </div>
+    <ul class="list-unstyled list-inline"><li>{{ video.rating.average }}</li><li>{{ video.statistics.view_count }}</li><li>{{ video.rating.numRaters }}</li><li>{{ video.rating.max }}</li></ul>
+    </div>
+
+    {% endif %}
+
+    <div id="loading">
+
+    </div>
+
+    <div>
+
+    {% if testchart %}
+                <div class="col-md-6">
+                    {{ testchart.render|safe }}
+                </div>
+    {% endif %}
+
+    </div>
+
+
+{#    <div class="row">#}
+{##}
+{#        <button id="save">Load User</button>#}
+{#        <div id="loading"></div>#}
+{##}
+{#        <div class="col-md-12">#}
+{#            {% if chart %}#}
+{#                <div class="col-md-6">#}
+{#                    {{ chart.render|safe }}#}
+{#                </div>#}
+{#            {% endif %}#}
+{##}
+{#            {% if labmtchart %}#}
+{#                <div class="col-md-6">#}
+{#                    {{ labmtchart.render|safe }}#}
+{#                </div>#}
+{#            {% endif %}#}
+{##}
+{#            {% if result %}#}
+{#                <ul>#}
+{#                    {% for entry in result %}#}
+{#                        <div class="col-sm-6 col-md-4">#}
+{##}
+{#                        {% with sentiment=entry.content.text|sentiment %}#}
+{##}
+{#                            {% if sentiment > 0.0 %}#}
+{#                                <div class="panel" style="background-color: #5cb85c">#}
+{#                            {% elif sentiment < 0.0 %}#}
+{#                                <div class="panel" style="background-color: #d9534f">#}
+{#                            {% else %}#}
+{#                                <div class="panel prut">#}
+{#                            {% endif %}#}
+{##}
+{##}
+{#                        {% endwith %}#}
+{##}
+{#                    <img src=" {{ entry.media.thumbnail.0.url }} ">#}
+{##}
+{#                    <div class="caption">#}
+{##}
+{#                        <ul class="list-unstyled list-inline">#}
+{#                            <li>{{ entry.published.text }}</li>#}
+{#                            <li>{{ entry.author.0.name.text }}</li>#}
+{#                        </ul>#}
+{#                        <p>{{ entry.content.text }}</p>#}
+{##}
+{#                        <p>{{ entry.content.text|sentiment }}</p>#}
+{##}
+{#                    </div>#}
+{##}
+{#                    </div>#}
+{#                    </div>#}
+{##}
+{##}
+{#                    {% endfor %}#}
+{#                </ul>#}
+{#            {% else %}#}
+{#                <p>No polls are available.</p>#}
+{#            {% endif %}#}
+{#        </div>#}
+{#    </div>#}
+
+{% endblock %}
+
+{% block script %}
+    <script>
+            $(document).ready(function (e) {
+                // add loading image to div
+                $('#loading').html('<h1 style="margin:auto; display:block; text-align:center;">Generating Report</h1><img style="margin:auto; display:block;" src=" {% static 'youtube/images/loading.GIF' %}"> ');
+
+                // run ajax request
+                $.ajax({
+                    type: "GET",
+                    dataType: "html",
+                    url: "{% url 'prut' video_id %}",
+                    success: function (d) {
+                        // replace div's content with returned data
+                        $('#loading').html(d);
+                    }
+                });
+            });
+        </script>
+{% endblock %}
