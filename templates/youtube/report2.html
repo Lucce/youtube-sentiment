@@ -11,28 +11,42 @@
                 {% endfor %}
             {% endif %}
 
+            {% if labmtchart %}
+                <div class="col-md-6">
+                    {{ labmtchart.render|safe }}
+                </div>
+            {% endif %}
+
             {% if result %}
                 <ul>
                     {% for entry in result %}
                         <div class="col-sm-6 col-md-4">
 
-                            {% if entry.afinn_score > 0.0 %}
+                        {% with sentiment=entry.content.text|sentiment %}
+
+                            {% if sentiment > 0.0 %}
                                 <div class="panel" style="background-color: #5cb85c">
-                            {% elif entry.afinn_score < 0.0 %}
+                            {% elif sentiment < 0.0 %}
                                 <div class="panel" style="background-color: #d9534f">
                             {% else %}
                                 <div class="panel prut">
                             {% endif %}
 
+
+                        {% endwith %}
+
+                    <img src=" {{ entry.media.thumbnail.0.url }} ">
+
                     <div class="caption">
 
                         <ul class="list-unstyled list-inline">
-                            <li>{{ entry.date }}</li>
-                            <li>{{ entry.author }}</li>
-
+                            <li>{{ entry.published.text }}</li>
+                            <li>{{ entry.author.0.name.text }}</li>
+                            <li>{{ entry.id.text }}</li>
                         </ul>
-                        <p>{{ entry.text }}</p>
-                        <p>{{ entry.afinn_score }}</p>
+                        <p>{{ entry.content.text }}</p>
+
+                        <p>{{ entry.content.text|sentiment }}</p>
 
                     </div>
 

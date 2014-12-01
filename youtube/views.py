@@ -1,27 +1,119 @@
+from __future__ import division
 from django.shortcuts import render
-from youtube import video
 from youtube import util
-from youtube.models import Comment
 import pygal
 from pygal.style import CleanStyle
 import numpy as np
 import gdata
+from youtube.models import Video
+from youtube.models import Category
+from youtube.models import Comment
+from django.utils import dateparse
+import cProfile
+
 from collections import Counter
 
 # Create your views here.
 
 def index(request):
-
     return render(request, 'youtube/index.html')
 
 def video(request, video_id):
 
-    yt_service = gdata.youtube.service.YouTubeService()
+    if Video.objects.filter(id=video_id).exists():
+        video = Video.objects.get(id=video_id)
 
-    video_details = yt_service.GetYouTubeVideoEntry(video_id=video_id)
+    else:
+
+        yt_service = gdata.youtube.service.YouTubeService()
+
+        try:
+            video_details = yt_service.GetYouTubeVideoEntry(video_id=video_id)
+        except gdata.service.RequestError, inst:
+            error = inst[0]
+            context = {'video_id': video_id, 'error': error}
+            return render(request, 'youtube/video.html', context)
+
+        category = Category.objects.get_or_create(id=video_details.media.category[0].text)
+
+        rating = 0
+
+        if video_details.rating.average:
+            rating = (float(video_details.rating.average) - float(video_details.rating.min)) / (float(video_details.rating.max)-1)
+            print "video percent rating: {}".format(rating)
+
+        print video_details.statistics.view_count
+
+
+        video , new = Video.objects.get_or_create(id=video_id,
+                                                  category=category[0],
+                                                  title=video_details.media.title.text,
+                                                  rating=rating,
+                                                  date=dateparse.parse_datetime(video_details.published.text),
+                                                  image=video_details.media.thumbnail[0].url,
+                                                  view_count=video_details.statistics.view_count,
+                                                )
+
+    context = {'video_id': video_id, 'video': video}
+    return render(request, 'youtube/video.html', context)
+
+def report(request, video_id):
+
+    video_obj = Video.objects.get(id=video_id)
+
+    if not Comment.objects.filter(video=video_obj).exists():
+        latest_question_list = util.getComments(video_id)
+        cProfile.runctx('util.savecomments(latest_question_list, video_id)', globals(), locals())
+        #util.savecomments(latest_question_list, video_id)
+
+
+    comments = Comment.objects.filter(video=video_obj)
+
+    positive_count = Comment.objects.filter(video=video_obj,afinn_score__gt=0).count()
+    negative_count = Comment.objects.filter(video=video_obj,afinn_score__lt=0).count()
+
+    comments = Comment.objects.filter(video=video_obj)
+    score_list = comments.values_list('afinn_score',flat=True)
+
+    afinn_score_list = np.array(score_list)
+
+    chart_data = np.histogram(afinn_score_list, range=(-5.5, 5.5), bins=11, density=True)[0] * 100
+
+    charts =[]
+
+    bar_chart = pygal.Bar(title=u'Afinn sentiment Histrogram', range=(0, 100), style=CleanStyle, disable_xml_declaration=True)
+    bar_chart.x_labels = map(str, range(-5, 6))
+    bar_chart.y_labels = map(str, range(0, 110, 10))
+    bar_chart.add('Comment Sentiment', chart_data)
+
+    charts.append(bar_chart)
+
+    pie_chart = pygal.Pie(style=CleanStyle, disable_xml_declaration=True)
+    pie_chart.title = 'Browser usage in February 2012 (in %)'
+    pie_chart.add('Possitive', positive_count)
+    pie_chart.add('Negative', negative_count)
+
+    charts.append(pie_chart)
+
 
     # latest_question_list = util.getComments(video_id)
+    #
+    # util.savecomments(latest_question_list, video_id)
+    #
+    # print "number of comments analysed {}".format(len(latest_question_list))
     # afinn_score = np.array([util.afinn_sentiment(text.content.text) for text in latest_question_list])
+    #
+    # print "positive comments: {0}".format((afinn_score > 0).sum())
+    # print "negative comments: {0}".format((afinn_score < 0).sum())
+    #
+    # charts =[]
+    #
+    # pie_chart = pygal.Pie(style=CleanStyle, disable_xml_declaration=True)
+    # pie_chart.title = 'Browser usage in February 2012 (in %)'
+    # pie_chart.add('Possitive', (afinn_score > 0).sum())
+    # pie_chart.add('Negative', (afinn_score < 0).sum())
+    #
+    # charts.append(pie_chart)
     #
     # #labmt_score = np.array([util.labmt_sentiment(text.content.text) for text in latest_question_list])
     #
@@ -30,57 +122,16 @@ def video(request, video_id):
     # bar_chart = pygal.Bar(title=u'Afinn sentiment Histrogram', range=(0, 100), style=CleanStyle, disable_xml_declaration=True)
     # bar_chart.x_labels = map(str, range(-5, 6))
     # bar_chart.y_labels = map(str, range(0, 110, 10))
-    #
     # bar_chart.add('Comment Sentiment', chart_data)
+    #
+    # charts.append(bar_chart)
+    # # for entry in latest_question_list:
+    # #     Comment(id=entry,author=,video_id=,text=afinn_score=,labmt_score=)
+    #
+    #context = {'video_id': video_id, 'result': latest_question_list, 'charts': charts}
 
-    # for entry in latest_question_list:
-    #     Comment(id=entry,author=,video_id=,text=afinn_score=,labmt_score=)
+    context = {'video_id': video_id, 'result': comments, 'charts': charts}
 
-    #context = {'video_id': video_id, 'result': latest_question_list, 'video' : video_details, 'chart': bar_chart}
-
-    horizontalbar_chart = pygal.HorizontalBar(disable_xml_declaration=True)
-    horizontalbar_chart.title = 'Browser usage in February 2012 (in %)'
-    horizontalbar_chart.add('IE', 19.5)
-    horizontalbar_chart.add('Firefox', 36.6)
-    horizontalbar_chart.add('Chrome', 36.3)
-    horizontalbar_chart.add('Safari', 4.5)
-    horizontalbar_chart.add('Opera', 2.3)
-
-    context = {'video_id': video_id,'video': video_details, 'testchart': horizontalbar_chart }
-    return render(request, 'youtube/video.html', context)
-
-def report(request, video_id):
-
-    latest_question_list = util.getComments(video_id)
-    print "number of comments analysed {}".format(len(latest_question_list))
-    afinn_score = np.array([util.afinn_sentiment(text.content.text) for text in latest_question_list])
-
-    print "positive comments: {0}".format((afinn_score > 0).sum())
-    print "negative comments: {0}".format((afinn_score < 0).sum())
-
-    charts =[]
-
-    pie_chart = pygal.Pie(style=CleanStyle, disable_xml_declaration=True)
-    pie_chart.title = 'Browser usage in February 2012 (in %)'
-    pie_chart.add('Possitive', (afinn_score > 0).sum())
-    pie_chart.add('Negative', (afinn_score < 0).sum())
-
-    charts.append(pie_chart)
-
-    #labmt_score = np.array([util.labmt_sentiment(text.content.text) for text in latest_question_list])
-
-    chart_data = np.histogram(afinn_score, range=(-5.5,5.5), bins=11, density=True)[0] * 100
-
-    bar_chart = pygal.Bar(title=u'Afinn sentiment Histrogram', range=(0, 100), style=CleanStyle, disable_xml_declaration=True)
-    bar_chart.x_labels = map(str, range(-5, 6))
-    bar_chart.y_labels = map(str, range(0, 110, 10))
-    bar_chart.add('Comment Sentiment', chart_data)
-
-    charts.append(bar_chart)
-    # for entry in latest_question_list:
-    #     Comment(id=entry,author=,video_id=,text=afinn_score=,labmt_score=)
-
-    context = {'video_id': video_id, 'result': latest_question_list, 'charts': charts}
     return render(request, 'youtube/report.html', context)
 
 

@@ -13,6 +13,9 @@ import re
 import math
 from timeit import Timer
 import codecs
+from youtube.models import Comment
+from youtube.models import Video
+from django.utils import dateparse
 
 from collections import Counter
 
@@ -29,11 +32,9 @@ filenameAFINN = 'AFINN-111.txt'
 afinn = dict(map(lambda (w, s): (w, int(s)), [ws.strip().split('\t') for ws in codecs.open(filenameAFINN, 'r',encoding='utf-8')]))
 
 pattern_split = re.compile(r"\W+")
+
 def afinn_sentiment(text):
-    """
-    Returns a float for sentiment strength based on the input text.
-    Positive values are positive valence, negative value are negative valence.
-    """
+
     print text
 
     text = text.decode('utf-8')
@@ -44,13 +45,7 @@ def afinn_sentiment(text):
     print "nltk tokens"
     words = tokenizer.tokenize(text)
     print words
-    print len(words)
 
-    # print "pattern split"
-    # words = pattern_split.split(text.lower())
-    # print words
-
-    print len(words)
     sentiments = map(lambda word: afinn.get(word, 0), words)
 
     if sentiments:
@@ -76,7 +71,7 @@ def labmt_sentiment(input):
 
     return sum([(happy_dict[word] * (freq / sum_value)) for word, freq in sentiment_words.iteritems()])
 
-def getComments(video_id, index=1, max_entry=2000):
+def getComments(video_id, index=1, max_entry=800):
 
     yt_service = gdata.youtube.service.YouTubeService()
 
@@ -88,7 +83,6 @@ def getComments(video_id, index=1, max_entry=2000):
 
     comments = []
     counter = 0
-
 
     while url and counter < max_entry:
         comment_feed = yt_service.GetYouTubeVideoCommentFeed(url)
@@ -106,7 +100,47 @@ def getComments(video_id, index=1, max_entry=2000):
         else:
             url = False
 
-    return comments
+    return list(set(comments))
+
+def savecomments(comments, video_id):
+
+    data = []
+
+    nonid = []
+    id = set()
+
+    temp_video = Video.objects.get(id=video_id)
+
+    for comment in comments:
+        # nonid.append(comment.id.text)
+        # id.add(comment.id.text)
+        #
+        # print len(nonid)
+        # print len(id)
+        data.append(Comment(id=comment.id.text,
+                            author=comment.author[0].name.text,
+                            date=dateparse.parse_datetime(comment.published.text),
+                            video=temp_video,
+                            text=comment.content.text,
+                            afinn_score=afinn_sentiment(comment.content.text)))
+
+        # defaults= {'author': comment.author[0].name.text,
+        #            'date': dateparse.parse_datetime(comment.published.text),
+        #            'video': temp_video,
+        #            'text': comment.content.text,
+        #            'afinn_score': afinn_sentiment(comment.content.text)}
+
+        # Comment.objects.update_or_create(Comment(id=comment.id.text,
+        #                                          author=comment.author[0].name.text,
+        #                                          date=dateparse.parse_datetime(comment.published.text),
+        #                                          video=temp_video,
+        #                                          text=comment.content.text,
+        #                                          afinn_score=afinn_sentiment(comment.content.text)))
+
+        #Comment.objects.update_or_create(id=comment.id.text, defaults=defaults)
+
+    data = set(data)
+    Comment.objects.bulk_create(data)
 
 def searchresult(search_terms,page=1):
 

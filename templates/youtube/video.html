@@ -9,18 +9,22 @@
 
     {% if video %}
     <div class="row">
-    <h1>{{ video.media.title.text }}</h1>
+    <h1>{{ video.title }}</h1>
     <div class="embed-responsive embed-responsive-16by9">
         <iframe src="http://www.youtube.com/embed/{{ video_id }}"></iframe>
     </div>
-    <ul class="list-unstyled list-inline"><li>{{ video.rating.average }}</li><li>{{ video.statistics.view_count }}</li><li>{{ video.rating.numRaters }}</li><li>{{ video.rating.max }}</li></ul>
+    <ul class="list-unstyled list-inline"><li>{{ video.rating }}</li><li>{{ video.view_count }}</li></ul>
     </div>
 
     {% endif %}
 
+    {% if error %}
+       <h1>{{ error.body }}</h1>
+    {% endif %}
+
     <div id="loading">
 
-    </div>
+
 
     <div>
 
@@ -98,7 +102,8 @@
 {% endblock %}
 
 {% block script %}
-    <script>
+    {% if video %}
+        <script>
             $(document).ready(function (e) {
                 // add loading image to div
                 $('#loading').html('<h1 style="margin:auto; display:block; text-align:center;">Generating Report</h1><img style="margin:auto; display:block;" src=" {% static 'youtube/images/loading.GIF' %}"> ');
@@ -115,4 +120,5 @@
                 });
             });
         </script>
+    {% endif %}
 {% endblock %}
