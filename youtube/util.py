@@ -142,6 +142,13 @@ def savecomments(comments, video_id):
     data = set(data)
     Comment.objects.bulk_create(data)
 
+def getMostPopularVideos():
+
+    yt_service = gdata.youtube.service.YouTubeService()
+    uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_popular"
+    feed = yt_service.GetYouTubeVideoFeed(uri)
+    return feed.entry
+
 def searchresult(search_terms,page=1):
 
     yt_service = gdata.youtube.service.YouTubeService()

@@ -13,7 +13,7 @@ def getid(value):
 @stringfilter
 def getdate(value):
 
-    return value.split("/")[-1]
+    return value.split("T")[0]
 
 @register.filter(name='sentiment')
 def sentiment(value):

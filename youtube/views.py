@@ -16,7 +16,12 @@ from collections import Counter
 # Create your views here.
 
 def index(request):
-    return render(request, 'youtube/index.html')
+    popular = util.getMostPopularVideos()
+    #date = [entry.published.text.split('T')[0] for entry in popular.entry]
+    return render(request, 'youtube/index.html', {'popular': popular})
+
+def about(request):
+    return render(request, 'youtube/about.html')
 
 def video(request, video_id):
 
