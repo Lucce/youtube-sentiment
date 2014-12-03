@@ -6,20 +6,20 @@
 {% block content %}
     <div class="row">
         <div class="col-xs-8 col-xs-offset-2">
-            <form action="{% url 'search' %}" method="get" role="search">
+            <form action="{% url 'search' %}" method="get" role="search" style="margin-bottom: 40px;">
                 <div class="input-group">
                     <div class="input-group-btn search-panel">
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                            <span id="search_concept">relevancy</span> <span class="caret"></span>
+                            <span id="search_concept">Relevancy</span> <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="#published">published</a></li>
+                            <li><a href="#published">Published</a></li>
                             <li class="divider"></li>
-                            <li><a href="#all">relevancy</a></li>
+                            <li><a href="#all">Relevancy</a></li>
                         </ul>
                     </div>
                     <input type="hidden" name="search_param" value="all" id="search_param">
-                    <input type="text" class="form-control" name="q" placeholder="Search term...">
+                    <input type="text" class="form-control" name="q" placeholder="Search video...">
                 <span class="input-group-btn">
                     <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-search"></span>
                     </button>
@@ -50,7 +50,6 @@
                                         <li><span class="glyphicon glyphicon-calendar" aria-hidden="true"></span> {{ entry.published.text|getdate }}</li>
                                     </ul>
                                     <p>{{ entry.media.description.text|cut:300 }}</p>
-
                                 </div>
 
                             </div>
