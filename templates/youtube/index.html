@@ -1,7 +1,7 @@
 {% extends 'youtube/base.html' %}
 {% load extra_filters %}
 
-{% block title %} Video result {% endblock %}
+{% block title %} YouPy Project {% endblock %}
 
 {% block content %}
     <div class="row">
@@ -30,7 +30,11 @@
     </div>
 
     <div class="row">
-
+        <body>
+            <h1>
+                Most popular videos from today!
+            </h1>
+        </body>
         <div class="col-md-12">
             {% if popular %}
                 <ul>
@@ -40,12 +44,12 @@
                                 <img src=" {{ entry.media.thumbnail.0.url }} ">
 
                                 <div class="caption">
-                                    <h4><a href="../video/{{ entry.id.text|getid }}">{{ entry.media.title.text }}</a>
+                                    <h4><a href="../youtube/video/{{ entry.id.text|getid }}">{{ entry.media.title.text }}</a>
                                     </h4>
                                     <ul class="list-unstyled list-inline">
                                         <li><span class="glyphicon glyphicon-calendar" aria-hidden="true"></span> {{ entry.published.text|getdate }}</li>
                                     </ul>
-                                    <p>{{ entry.media.description.text }}</p>
+                                    <p>{{ entry.media.description.text|cut:300 }}</p>
 
                                 </div>
 
