@@ -27,20 +27,22 @@ def about(request):
 
 def video(request, video_id):
 
+
+
     if Video.objects.filter(id=video_id).exists():
+
         video = Video.objects.get(id=video_id)
 
     else:
 
-
-        yt_service = gdata.youtube.service.YouTubeService()
+        yt_service = util.connect_youtube()
 
         try:
             video_details = yt_service.GetYouTubeVideoEntry(video_id=video_id)
         except gdata.service.RequestError, inst:
             error = inst[0]
-            context = {'video_id': video_id, 'error': error}
-            return render(request, 'youtube/video.html', context)
+            context = {'message': video_id, 'error': error}
+            return render(request, 'youtube/error.html', context)
 
         category = Category.objects.get_or_create(id=video_details.media.category[0].text)
 

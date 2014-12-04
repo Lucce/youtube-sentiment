@@ -1,0 +1,17 @@
+{% extends 'youtube/base.html' %}
+{% load extra_filters %}
+{% load humanize %}
+{% load staticfiles %}
+
+{% block title %} Error {% endblock %}
+
+{% block content %}
+
+    {% if error %}
+       <h1>{{ error.body }}</h1>
+
+        <p>{{ message }}</p>
+    {% endif %}
+
+
+{% endblock %}

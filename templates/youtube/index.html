@@ -4,6 +4,12 @@
 {% block title %} YouPy Project {% endblock %}
 
 {% block content %}
+
+    <div align="center">
+        <img src="../static/images/YouPy.png" alt="YouPy" width="300px"/>
+    </div>
+    <br/>
+
     <div class="row">
         <div class="col-xs-8 col-xs-offset-2">
             <form action="{% url 'search' %}" method="get" role="search" style="margin-bottom: 40px;">
@@ -40,7 +46,7 @@
                 <ul>
                     {% for entry in popular %}
                         <div class="col-sm-6 col-md-4">
-                            <div class="thumbnail">
+                            <div class="thumbnail video-entry">
                                 <img src=" {{ entry.media.thumbnail.0.url }} ">
 
                                 <div class="caption">

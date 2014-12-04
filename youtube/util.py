@@ -33,6 +33,15 @@ afinn = dict(map(lambda (w, s): (w, int(s)), [ws.strip().split('\t') for ws in c
 
 pattern_split = re.compile(r"\W+")
 
+def connect_youtube():
+    try:
+        return gdata.youtube.service.YouTubeService()
+    except gdata.service.RequestError, inst:
+        error = inst[0]
+
+def save_video(id):
+    pass
+
 def afinn_sentiment(text):
 
     print text
@@ -88,7 +97,6 @@ def getComments(video_id, index=1, max_entry=800):
         comment_feed = yt_service.GetYouTubeVideoCommentFeed(url)
 
         comments.extend([comment for comment in comment_feed.entry if comment.content.text is not None])
-        #text.append(senanalyze(comments.text.content))
 
         counter = len(comments)
 
@@ -148,6 +156,7 @@ def getMostPopularVideos():
     uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?time=today"
     feed = yt_service.GetYouTubeVideoFeed(uri)
     return feed.entry
+
 
 def searchresult(search_terms,page=1):
 
