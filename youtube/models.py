@@ -15,6 +15,7 @@ class Video(models.Model):
     category = models.ForeignKey(Category)
     title = models.CharField(max_length=30)
     rating = models.FloatField(blank=True)
+    score = models.FloatField(default=0)
     date = models.DateTimeField()
     image = models.URLField()
     view_count = models.IntegerField()

@@ -145,7 +145,7 @@ def savecomments(comments, video_id):
 def getMostPopularVideos():
 
     yt_service = gdata.youtube.service.YouTubeService()
-    uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_popular"
+    uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?time=today"
     feed = yt_service.GetYouTubeVideoFeed(uri)
     return feed.entry
 

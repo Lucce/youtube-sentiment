@@ -2,7 +2,7 @@
 {% load extra_filters %}
 {% load humanize %}
 
-{% block title %} Video result {% endblock %}
+{% block title %} YouPy Video Search {% endblock %}
 
 {% block content %}
 
@@ -12,13 +12,13 @@
                 <div class="input-group">
                     <div class="input-group-btn search-panel">
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                            <span id="search_concept">relavency</span> <span class="caret"></span>
+                            <span id="search_concept">relevancy</span> <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="#published">published</a></li>
                             <li><a href="#viewCount">viewcount</a></li>
                             <li class="divider"></li>
-                            <li><a href="#all">relavency</a></li>
+                            <li><a href="#all">relevancy</a></li>
                         </ul>
                     </div>
                     <input type="hidden" name="search_param" value="all" id="search_param">

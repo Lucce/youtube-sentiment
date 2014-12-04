@@ -10,6 +10,8 @@ from youtube.models import Category
 from youtube.models import Comment
 from django.utils import dateparse
 import cProfile
+import pylab as pl
+from sklearn import linear_model
 
 from collections import Counter
 
@@ -29,6 +31,7 @@ def video(request, video_id):
         video = Video.objects.get(id=video_id)
 
     else:
+
 
         yt_service = gdata.youtube.service.YouTubeService()
 
@@ -76,6 +79,8 @@ def report(request, video_id):
 
     positive_count = Comment.objects.filter(video=video_obj,afinn_score__gt=0).count()
     negative_count = Comment.objects.filter(video=video_obj,afinn_score__lt=0).count()
+    video_obj.score = positive_count/(positive_count+negative_count)
+    video_obj.save()
 
     comments = Comment.objects.filter(video=video_obj)
     score_list = comments.values_list('afinn_score',flat=True)
@@ -95,11 +100,37 @@ def report(request, video_id):
 
     pie_chart = pygal.Pie(style=CleanStyle, disable_xml_declaration=True)
     pie_chart.title = 'Browser usage in February 2012 (in %)'
-    pie_chart.add('Possitive', positive_count)
+    pie_chart.add('Positive', positive_count)
     pie_chart.add('Negative', negative_count)
 
     charts.append(pie_chart)
 
+    data = []
+    cat_chart = pygal.XY(title=u'Sentiment vs Rating based on category', range=(0,1),
+                         style=CleanStyle, disable_xml_declaration=True, stroke=False,
+                         xlabel='Sentiment score', ylabel='Youtube rating')
+    cat_chart.title = 'Sentiment vs Rating based on category'
+    for c in Category.objects.all():
+        temp_list = [(v.score, v.rating) for v in Video.objects.filter(category=c)]
+        data += temp_list
+        cat_chart.add( c.id, temp_list)
+    charts.append(cat_chart)
+
+    # scores = np.array(zip(*data)[0])
+    # scores_w_intercept = np.array([np.ones( len(scores) ), scores]).T
+    # ratings = np.array(zip(*data)[1])
+    # regr = linear_model.LinearRegression(fit_intercept=False)
+    # regr.fit(scores_w_intercept, ratings)
+    # coef = regr.coef_
+    # lin_reg = pl.figure(title=u'Linear regression on the data', xlabel='Sentiment score', ylabel='Youtube rating')
+    # pl.title('Linear regression on the data')
+    # pl.scatter(scores, ratings, marker='x')
+    # pl.xlabel('Sentiment score')
+    # pl.ylabel('Youtube rating')
+    # x = np.linspace(0, max(scores), 20)
+    # y = x*coef[1]+coef[0]
+    # pl.plot(x, y)
+    # charts.append(cat_chart)
 
     # latest_question_list = util.getComments(video_id)
     #
