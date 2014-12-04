@@ -27,3 +27,8 @@ def cut(text,n):
         return text[:n]+"..."
     else:
         return text
+
+@register.filter(name='percent')
+@stringfilter
+def percent(decimal):
+    return float(decimal) * 100

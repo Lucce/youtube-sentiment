@@ -20,7 +20,7 @@ class AnimalTestCase(TestCase):
 
         video_details = yt_service.GetYouTubeVideoEntry(video_id=video_id)
 
-        data = util.getComments(video_id)
+        data = util.get_comments(video_id)
 
         util.savecomments(data, video_id)
 

@@ -4,18 +4,20 @@ from __future__ import division
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-import nltk
 import json
 import gdata
 import gdata.youtube
 import gdata.youtube.service
 import re
 import math
-from timeit import Timer
 import codecs
 from youtube.models import Comment
+from youtube.models import Category
 from youtube.models import Video
 from django.utils import dateparse
+from pygal.style import CleanStyle
+import numpy as np
+import pygal
 
 from collections import Counter
 
@@ -28,32 +30,59 @@ happy_dict = {x['word']: float(x['happs']) for x in my_data['objects']}
 new_happy_dict = {key: value for key, value in happy_dict.items() if not 4 <= value <= 6}
 
 
-filenameAFINN = 'AFINN-111.txt'
-afinn = dict(map(lambda (w, s): (w, int(s)), [ws.strip().split('\t') for ws in codecs.open(filenameAFINN, 'r',encoding='utf-8')]))
-
 pattern_split = re.compile(r"\W+")
 
+def get_wordlist():
+    filenameAFINN = 'AFINN-111.txt'
+    afinn = dict(map(lambda (w, s): (w, int(s)), [ws.strip().split('\t') for ws in codecs.open(filenameAFINN, 'r', encoding='utf-8')]))
+
+    return afinn
+
 def connect_youtube():
+
     try:
         return gdata.youtube.service.YouTubeService()
     except gdata.service.RequestError, inst:
         error = inst[0]
 
-def save_video(id):
-    pass
+def save_video(video_id):
+
+    yt_service = connect_youtube()
+
+    try:
+        video_details = yt_service.GetYouTubeVideoEntry(video_id=video_id)
+    except gdata.service.RequestError, inst:
+        error = inst[0]
+        context = {'message': video_id, 'error': error}
+
+    category = Category.objects.get_or_create(id=video_details.media.category[0].text)
+
+    if video_details.rating:
+        rating = (float(video_details.rating.average) - float(video_details.rating.min)) / (float(video_details.rating.max)-1)
+        print "video percent rating: {}".format(rating)
+
+    video, new = Video.objects.get_or_create(id=video_id,
+                                             category=category[0],
+                                             title=video_details.media.title.text,
+                                             rating=rating,
+                                             date=dateparse.parse_datetime(video_details.published.text),
+                                             image=video_details.media.thumbnail[0].url,
+                                             view_count=video_details.statistics.view_count,
+                                             )
+
+    return video
+
 
 def afinn_sentiment(text):
 
-    print text
+
+    afinn = get_wordlist()
 
     text = text.decode('utf-8')
-    text = text.replace('\ufeff',"")
+    text = text.replace('\ufeff', "")
     text = text.strip().lower()
 
-    #print text
-    print "nltk tokens"
     words = tokenizer.tokenize(text)
-    print words
 
     sentiments = map(lambda word: afinn.get(word, 0), words)
 
@@ -62,25 +91,18 @@ def afinn_sentiment(text):
     else:
         sentiment = 0
 
-    print sentiment
     return sentiment
-
 
 
 def labmt_sentiment(input):
     input = input.decode('utf-8')
-
-    #print input
-    #tokentext = nltk.word_tokenize(input.lower())
-
     tokentext = tokenizer.tokenize(input)
 
     sentiment_words = Counter(dict.fromkeys(new_happy_dict.keys(), float('inf'))) & Counter(tokentext)
     sum_value = sum(sentiment_words.values())
-
     return sum([(happy_dict[word] * (freq / sum_value)) for word, freq in sentiment_words.iteritems()])
 
-def getComments(video_id, index=1, max_entry=800):
+def get_comments(video_id, index=1, max_entry=800):
 
     yt_service = gdata.youtube.service.YouTubeService()
 
@@ -113,7 +135,8 @@ def getComments(video_id, index=1, max_entry=800):
 def savecomments(comments, video_id):
 
     data = []
-
+    positive_count = 0
+    negative_count = 0
     nonid = []
     id = set()
 
@@ -125,30 +148,47 @@ def savecomments(comments, video_id):
         #
         # print len(nonid)
         # print len(id)
+        afinn_score = afinn_sentiment(comment.content.text)
         data.append(Comment(id=comment.id.text,
                             author=comment.author[0].name.text,
                             date=dateparse.parse_datetime(comment.published.text),
                             video=temp_video,
                             text=comment.content.text,
-                            afinn_score=afinn_sentiment(comment.content.text)))
+                            afinn_score=afinn_score))
+        if afinn_score > 0:
+            positive_count += 1
+        if afinn_score < 0:
+            negative_count += 1
 
-        # defaults= {'author': comment.author[0].name.text,
-        #            'date': dateparse.parse_datetime(comment.published.text),
-        #            'video': temp_video,
-        #            'text': comment.content.text,
-        #            'afinn_score': afinn_sentiment(comment.content.text)}
-
-        # Comment.objects.update_or_create(Comment(id=comment.id.text,
-        #                                          author=comment.author[0].name.text,
-        #                                          date=dateparse.parse_datetime(comment.published.text),
-        #                                          video=temp_video,
-        #                                          text=comment.content.text,
-        #                                          afinn_score=afinn_sentiment(comment.content.text)))
-
-        #Comment.objects.update_or_create(id=comment.id.text, defaults=defaults)
+    temp_video.score = float(positive_count)/(positive_count+negative_count)
+    temp_video.save()
 
     data = set(data)
     Comment.objects.bulk_create(data)
+
+def video_charts(video_obj, comments):
+
+    score = np.around(video_obj.score, decimals=2)
+    score_list = comments.values_list('afinn_score',flat=True)
+    afinn_score_list = np.array(score_list)
+
+    chart_data = np.histogram(afinn_score_list, range=(-5.5, 5.5), bins=11, density=True)[0] * 100
+    chart_data = np.around(chart_data, decimals=2)
+    charts = []
+
+    bar_chart = pygal.Bar(title=u'Afinn sentiment Histrogram', range=(0, 100), style=CleanStyle, disable_xml_declaration=True)
+    bar_chart.x_labels = map(str, range(-5, 6))
+    bar_chart.y_labels = map(str, range(0, 110, 10))
+    bar_chart.add('Comment Sentiment', chart_data)
+    charts.append(bar_chart)
+
+    pie_chart = pygal.Pie(style=CleanStyle, disable_xml_declaration=True)
+    pie_chart.title = 'Browser usage in February 2012 (in %)'
+    pie_chart.add('Positive', score)
+    pie_chart.add('Negative', 1-score)
+    charts.append(pie_chart)
+
+    return charts
 
 def getMostPopularVideos():
 
@@ -168,24 +208,8 @@ def searchresult(search_terms,page=1):
     query.racy = 'include'
     query.max_results = 50
 
-    test = str(query) + "&v=2"
-
-    print test
-    comments = []
-
     result = yt_service.YouTubeQuery(query)
     feed = result.entry
-
-
-    # list = []
-    #
-    # for entry in feed:
-    #     #Video.objects.create_video(entry)
-    #     print entry.media.title.text
-    #     print entry.id.text.split("/")[-1]
-    #     #list.append(Video(video_id=entry.id , title=entry.media.title.text))
-    #     #list.append(Video.objects.create_video(entry))
-
 
     return feed
 

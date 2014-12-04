@@ -40,12 +40,12 @@ class UtilTestCase(unittest.TestCase):
 
     def test_validId_getComments(self):
         videoid = "BpPMvttgOuY"
-        comments = util.getComments(videoid,1,10)
+        comments = util.get_comments(videoid,1,10)
         self.assertGreater(comments.__sizeof__(),0)
 
     def test_commentsDisabled_getComments(self):
         videoid = "v-g2UKEQ-Y4"
-        comments = util.getComments(videoid,1,10)
+        comments = util.get_comments(videoid,1,10)
         self.assertEqual(comments.__sizeof__(),0)
 
     # TODO It is supposed to get no results but it doesn't
