@@ -10,5 +10,6 @@ urlpatterns = patterns('',
     url(r'^about/$', views.about, name='about'),
     url(r'^video/(?P<video_id>[\w\-]+)/$', views.video, name='video'),
     url(r'^report/(?P<video_id>[\w\-]+)/$', views.report, name='prut'),
+    url(r'^regressive_analysis/$', views.regressive_analysis, name='stats'),
     url(r'^search/$', views.search, name='search'),
 )

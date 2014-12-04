@@ -12,9 +12,8 @@ from django.utils import dateparse
 import cProfile
 import pylab as pl
 from sklearn import linear_model
-from pytagcloud import create_html_data, create_tag_image
+from pytagcloud import create_tag_image
 from django.conf import settings
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 from collections import Counter
 
@@ -62,10 +61,8 @@ def report(request, video_id):
 
 def regressive_analysis(request):
 
-    canvas=FigureCanvas(fig)
-    response=django.http.HttpResponse(content_type='image/png')
-    canvas.print_png(response)
-    return response
+    chart = util.total_charts()
+    return render(request, 'youtube/regressive_analysis.html', {'chart': chart})
 
 def search(request):
     error = False
