@@ -18,6 +18,9 @@ from django.utils import dateparse
 from pygal.style import CleanStyle
 import numpy as np
 import pygal
+import simplejson
+from pytagcloud import defscale
+from pygame import Color
 
 from collections import Counter
 
@@ -166,6 +169,22 @@ def savecomments(comments, video_id):
     data = set(data)
     Comment.objects.bulk_create(data)
 
+def create_frequency_list(comments):
+
+    afinn = get_wordlist()
+    text = ''
+    for comment in comments:
+        text += comment.text
+
+    text.strip().lower()
+    words = tokenizer.tokenize(text)
+
+    count = Counter(words)
+    intersection = afinn.viewkeys() & count.viewkeys()
+    frequency_list = [(word,count[word]) for word in intersection if count[word] > 1]
+
+    return frequency_list
+
 def video_charts(video_obj, comments):
 
     score = np.around(video_obj.score, decimals=2)
@@ -212,6 +231,22 @@ def searchresult(search_terms,page=1):
     feed = result.entry
 
     return feed
+
+def tag_them(wordcounts, minsize=3, maxsize=36, average=0):
+
+    counts = [tag[1] for tag in wordcounts]
+    dictionary = get_wordlist()
+    if not len(counts):
+        return []
+
+    maxcount = max(counts)
+    mincount = min(counts)
+    tags = []
+    for word_count in wordcounts:
+        color = Color(0, 255, 0) if (dictionary[word_count[0]] > average) else Color(255, 0, 0)
+        tags.append({'color': color, 'size': defscale(word_count[1], mincount, maxcount, minsize, maxsize),
+                     'tag': word_count[0]})
+    return tags
 
 if __name__ == "__main__":
 

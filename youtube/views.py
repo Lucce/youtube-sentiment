@@ -12,6 +12,9 @@ from django.utils import dateparse
 import cProfile
 import pylab as pl
 from sklearn import linear_model
+from pytagcloud import create_html_data, create_tag_image
+from django.conf import settings
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 from collections import Counter
 
@@ -40,7 +43,7 @@ def report(request, video_id):
     video_obj = Video.objects.get(id=video_id)
 
     if not Comment.objects.filter(video=video_obj).exists():
-        latest_question_list = util.getComments(video_id)
+        latest_question_list = util.get_comments(video_id)
         cProfile.runctx('util.savecomments(latest_question_list, video_id)', globals(), locals())
         #util.savecomments(latest_question_list, video_id)
 
@@ -48,9 +51,21 @@ def report(request, video_id):
 
     charts = util.video_charts(video_obj, comments)
 
+    frequency_list = util.create_frequency_list(comments)
+    tags = util.tag_them(frequency_list, maxsize=120)
+    create_tag_image(tags, settings.STATIC_PATH_WINDOWS+'\images\cloud.png', size=(600, 450))
+    # create_html_data(tags, size=(900, 600))
+
     context = {'video_id': video_id, 'result': comments, 'charts': charts}
 
     return render(request, 'youtube/report.html', context)
+
+def regressive_analysis(request):
+
+    canvas=FigureCanvas(fig)
+    response=django.http.HttpResponse(content_type='image/png')
+    canvas.print_png(response)
+    return response
 
 def search(request):
     error = False
