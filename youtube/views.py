@@ -21,7 +21,7 @@ from collections import Counter
 # Create your views here.
 
 def index(request):
-    popular = util.getMostPopularVideos()
+    popular = util.get_most_popularvideos()
     return render(request, 'youtube/index.html', {'popular': popular})
 
 def about(request):
@@ -92,34 +92,39 @@ def report(request, video_id):
 
     frequency_list = util.create_frequency_list(comments)
     tags = util.tag_them(frequency_list, maxsize=120)
-    create_tag_image(tags, settings.STATIC_PATH_WINDOWS+'\images\cloud.png', size=(600, 450))
+    create_tag_image(tags, settings.STATIC_PATH_WINDOWS + '\images\cloud.png', size=(600, 450))
     # create_html_data(tags, size=(900, 600))
 
     context = {'video_id': video_id, 'result': comments, 'charts': charts}
 
     return render(request, 'youtube/report.html', context)
 
-def regressive_analysis(request):
 
+def regressive_analysis(request):
     chart = util.total_charts()
     return render(request, 'youtube/regressive_analysis.html', {'chart': chart})
 
 def search(request):
     error = False
+    print "compare"
+    page = 1
+    if 'page' in request.GET:
+        page = request.GET['page']
+        page = int(page)
 
     if 'q' in request.GET:
         q = request.GET['q']
         if not q:
             error = True
         else:
-            result = util.searchresult(q)
-            return render(request, 'youtube/search.html', {'result': result, 'query': q})
+            result = util.searchresult(q, page=page)
 
-            context = {'result': result, 'query': q}
+            context = {'result': result, 'query': q, 'page': page}
+            url = "?q={}".format(q)
 
             if 'compare' in request.GET:
-
-                url = "?q={}&compare=on".format(q)
+                print "compare"
+                url += "&compare=on"
 
                 context['compare'] = request.GET['compare']
 
@@ -137,6 +142,7 @@ def search(request):
                     context = {'video1': context['video1'], 'video2': context['video2']}
                     return render(request, 'youtube/compare.html', context)
 
+            context['link'] = url
             return render(request, 'youtube/search.html', context)
 
     return render(request, 'search_form.html', {'error': error})

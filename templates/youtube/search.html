@@ -58,16 +58,20 @@
                                     {% if link and not video1 %}
                                         <h4><a href="
 
+
                                                 {% url 'search' %}{{ link }}&video1={{ entry.id.text|getid }}">{{ entry.media.title.text }}</a>
+
                                         </h4>
                                     {% elif link and video1 %}
                                         <h4>
                                             <a href="{% url 'videos' video1 entry.id.text|getid %}">{{ entry.media.title.text }}</a>
+
                                         </h4>
                                     {% else %}
 
                                         <h4>
                                             <a href="{% url 'video' entry.id.text|getid %}">{{ entry.media.title.text }}</a>
+
                                         </h4>
 
                                     {% endif %}
@@ -91,6 +95,15 @@
 
                     {% endfor %}
                 </ul>
+                <nav>
+                    <ul class="pagination">
+                        {% for i in "xxxxxxxxxxxxxxxxxxxx" %}
+                            <li {% if page == forloop.counter0|add:"1" %}class="active"{% endif %}><a
+                                    href="{{ link }}&page={{ forloop.counter0|add:"1" }}">{{ forloop.counter0|add:"1" }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
             {% else %}
                 <p>No polls are available.</p>
             {% endif %}
