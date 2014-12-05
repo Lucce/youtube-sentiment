@@ -99,9 +99,11 @@ def report(request, video_id):
 
     return render(request, 'youtube/report.html', context)
 
-
 def regressive_analysis(request):
-    chart = util.total_charts()
+
+    cat_data = util.get_total_data()
+    chart = util.category_chart(cat_data)
+    util.linear_regression(cat_data)
     return render(request, 'youtube/regressive_analysis.html', {'chart': chart})
 
 def search(request):
