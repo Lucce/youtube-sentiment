@@ -31,7 +31,6 @@ class Comment(models.Model):
     text = models.TextField()
     date = models.DateTimeField()
     afinn_score = models.FloatField(null=True)
-    #labmt_score = models.FloatField()
 
     def __unicode__(self):
         return self.text

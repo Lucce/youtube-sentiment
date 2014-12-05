@@ -25,14 +25,14 @@ import matplotlib
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from django.conf import settings
 from collections import Counter
 from gdata.youtube.service import YouTubeService
 from django.core.files.storage import FileSystemStorage
 
 fs = FileSystemStorage(location='/media/photos')
 import StringIO
-import urllib, base64
+import urllib
+import base64
 
 
 from nltk.tokenize import RegexpTokenizer
@@ -238,7 +238,6 @@ def linear_regression(cat_dict):
     plt.axis([0, 1, 0, 1])
     plt.scatter(scores, ratings, marker='x')
     plt.plot(x, y)
-    plt.savefig(settings.STATIC_PATH_WINDOWS + '\images\lin_reg.png')
 
     imgdata = StringIO.StringIO()
     plt.savefig(imgdata, format='png')

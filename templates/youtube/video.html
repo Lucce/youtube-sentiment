@@ -17,13 +17,14 @@
 
             <ul class="list-unstyled list-inline stat">
                 <li class="right"><span class="glyphicon glyphicon-eye-open"
-                                        aria-hidden="true"></span> {{ video.rating|intcomma }}
+                                        aria-hidden="true"></span> {{ video.view_count|intcomma }}
                 </li>
                 <li><span class="glyphicon glyphicon-calendar"
                           aria-hidden="true"></span> {{ video.date|naturaltime }}
                 </li>
             </ul>
         </div>
+        <h3>Video Rating:</h3>
         <div class="progress">
             <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"
                  style="width: {{ video.rating|percent }}%;">

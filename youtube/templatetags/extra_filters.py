@@ -2,8 +2,6 @@ from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils import dateparse
 
-from youtube import util
-
 
 register = template.Library()
 
@@ -37,7 +35,7 @@ def percent(decimal):
     return float(decimal) * 100
 
 
-@register.inclusion_tag('youtube/tagtemplate/test.html')
+@register.inclusion_tag('youtube/tagtemplate/progressbar.html')
 def show_progress(number):
     """
     Outputs the progressbar in html

@@ -44,15 +44,25 @@ def video(request, video_id):
 
 
 def videos(request, video1, video2):
+
     if Video.objects.filter(id=video1).exists():
         video_1 = Video.objects.get(id=video1)
     else:
-        video_1 = util.save_video(video1)
+        try:
+            video1 = util.save_video(video_1)
+        except gdata.service.RequestError, inst:
+            context = {'error': inst[0], 'id': video1}
+            return render(request, 'youtube/error.html', context)
 
     if Video.objects.filter(id=video2).exists():
         video_2 = Video.objects.get(id=video2)
     else:
-        video_2 = util.save_video(video2)
+        try:
+            video_2 = util.save_video(video2)
+        except gdata.service.RequestError, inst:
+            context = {'error': inst[0], 'id': video2}
+            return render(request, 'youtube/error.html', context)
+
 
     context = {'video1': video_1, 'video2': video_2}
     return render(request, 'youtube/videos.html', context)

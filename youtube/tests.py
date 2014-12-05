@@ -1,10 +1,13 @@
+from datetime import date
+
 from django.test import TestCase
 import gdata
+
 import util
-from datetime import date
 from youtube.models import Video
 from youtube.models import Comment
 from youtube.models import Category
+
 
 """ Functionality testing """
 
@@ -74,14 +77,14 @@ class UtilTestCase(TestCase):
             id="http://gdata.youtube.com/feeds/api/videos/XI8o6s1pmwg/comments/z12xyxgg2ovrvv3x304cdlvarvuwu5z5ts40k",
             author="samantha jones",
             video_id="XI8o6s1pmwg",
-            text="Seth Rogens laugh ",
+            text="Seth Rogens yields ",
             date=date1,
             afinn_score="0.577350269189626")
         comment4 = Comment(
             id="http://gdata.youtube.com/feeds/api/videos/XI8o6s1pmwg/comments/z12ijfigqofty35mo235iv3zmofcsrcu1",
             author="Arden Anastasi",
             video_id="XI8o6s1pmwg",
-            text="Seth Rogen is such a nice, cool guy. Love him",
+            text="Seth Rogen is such a nice, cool guy. Hate him",
             date=date1,
             afinn_score="2.21359436211787")
         comment5 = Comment(
@@ -118,10 +121,6 @@ class UtilTestCase(TestCase):
     def test_comment_view(self):
         com = Comment.objects.filter(video_id="XI8o6s1pmwg")
         self.assertEquals(4, len(com))
-
-    def test_get_wordlist(self):
-        """ test_get_wordlist should results a list greater than 0 if wordlist is loaded    """
-        self.assertGreater(len(util.get_wordlist()), 0)
 
     def test_save_video(self):
         """ test_save_video should results 'Enterntainment' from the database from a video  """
@@ -162,7 +161,7 @@ class UtilTestCase(TestCase):
 
     def test_create_frequency_list_without_frequency(self):
         """ test_create_frequency_list should results a zero list """
-        comments = Comment.objects.filter(video_id="XI8o6s1pmwg")
+        comments = Comment.objects.filter(video="XI8o6s1pmwg")
         self.assertEquals(0, len(util.create_frequency_list(comments)))
 
     def test_create_frequency_list_with_frequency(self):
