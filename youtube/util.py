@@ -127,7 +127,11 @@ def get_comments(video_id, index=1, max_entry=800):
     counter = 0
 
     while url and counter < max_entry:
-        comment_feed = yt_service.GetYouTubeVideoCommentFeed(url)
+        try:
+            comment_feed = yt_service.GetYouTubeVideoCommentFeed(url)
+        except gdata.service.RequestError:
+            comments = list()
+            return comments
 
         comments.extend([comment for comment in comment_feed.entry if comment.content.text is not None])
 
