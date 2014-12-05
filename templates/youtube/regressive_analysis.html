@@ -4,24 +4,26 @@
 
 {% block content %}
 
-    {% block title %} YouPy Sentiment Statistics {% endblock %}
+    {% block title %} <h1>YouPy Sentiment Statistics</h1>{% endblock %}
 
     <div class="row">
 
         <div class="col-md-12">
             {% if chart %}
-                <div class="col-md-7">
+                <div class="col-md-12">
                     {{ chart.render|safe }}
                 </div>
             {% endif %}
 
             {% if image %}
-                <div class="col-md-7">
+                <div class="col-md-12">
                     <img src="data:image/png;base64,{{ image|safe }}"/>
                 </div>
             {% endif %}
 
         </div>
+
+    </div>
         <script type="text/javascript" src="http://kozea.github.com/pygal.js/javascripts/svg.jquery.js"></script>
         <script type="text/javascript" src="http://kozea.github.com/pygal.js/javascripts/pygal-tooltips.js"></script>
 

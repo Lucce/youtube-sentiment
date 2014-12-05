@@ -84,7 +84,6 @@ def afinn_sentiment(text):
     """
     Returns the sentiment score(float) of the input string text using the afinn word list. Returns 0 when null string is input.
     """
-    afinn = get_wordlist()
 
     text = text.decode('utf-8')
     text = text.replace('\ufeff', "")
