@@ -5,11 +5,10 @@ import sys
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
-import json
+
 import gdata
 import gdata.youtube
 import gdata.youtube.service
-import re
 import math
 import codecs
 from youtube.models import Comment
@@ -19,7 +18,6 @@ from django.utils import dateparse
 from pygal.style import CleanStyle
 import numpy as np
 import pygal
-import simplejson
 from pytagcloud import defscale
 from pygame import Color
 from sklearn import linear_model
@@ -31,19 +29,11 @@ from nltk.tokenize import RegexpTokenizer
 
 tokenizer = RegexpTokenizer(r'\w+')
 
-my_data = json.loads(open("labmt.json").read())
-happy_dict = {x['word']: float(x['happs']) for x in my_data['objects']}
-new_happy_dict = {key: value for key, value in happy_dict.items() if not 4 <= value <= 6}
-
-
-pattern_split = re.compile(r"\W+")
-
 
 def get_wordlist():
     filename_afinn = 'AFINN-111.txt'
     afinn = dict(map(lambda (w, s): (w, int(s)),
                      [ws.strip().split('\t') for ws in codecs.open(filename_afinn, 'r', encoding='utf-8')]))
-
     return afinn
 
 
@@ -105,15 +95,6 @@ def afinn_sentiment(text):
     return sentiment
 
 
-def labmt_sentiment(input):
-    text = input.decode('utf-8')
-    token_text = tokenizer.tokenize(text)
-
-    sentiment_words = Counter(dict.fromkeys(new_happy_dict.keys(), float('inf'))) & Counter(token_text)
-    sum_value = sum(sentiment_words.values())
-    return sum([(happy_dict[word] * (freq / sum_value)) for word, freq in sentiment_words.iteritems()])
-
-
 def get_comments(video_id, index=1, max_entry=800):
     yt_service = gdata.youtube.service.YouTubeService()
 
@@ -172,6 +153,7 @@ def savecomments(comments, video_id):
 
     data = set(data)
     Comment.objects.bulk_create(data)
+
 
 def create_frequency_list(comments):
 
@@ -302,18 +284,3 @@ if __name__ == "__main__":
 
     print "afinn result"
     print afinn_sentiment(string)
-
-    # print "labmt result"
-    #print labmt_sentiment(string)
-
-    # string = "i do not like it"
-    # print afinn_sentiment(string)
-    # print labmt_sentiment(string)
-    #
-    # t = Timer('labmt_sentiment("Finn is only a tiny bit stupid and Idiot")','from __main__ import labmt_sentiment')
-    # print "time result"
-    # print t.timeit(number=200)
-    #
-    # t = Timer('afinn_sentiment("Finn is only a tiny bit stupid and Idiot")','from __main__ import afinn_sentiment')
-    # print "time result"
-    # print t.timeit(number=200)

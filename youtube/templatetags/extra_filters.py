@@ -1,7 +1,9 @@
 from django import template
 from django.template.defaultfilters import stringfilter
+from django.utils import dateparse
+
 from youtube import util
-from datetime import datetime
+
 
 register = template.Library()
 
@@ -13,7 +15,8 @@ def getid(value):
 @register.filter(name='getdate')
 @stringfilter
 def getdate(text):
-    return datetime.strptime(text, "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d/%m/%Y %H:%M:%S")
+    # return datetime.strptime(text, "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d/%m/%Y %H:%M:%S")
+    return dateparse.parse_datetime(text)
 
 @register.filter(name='sentiment')
 def sentiment(value):
@@ -36,14 +39,4 @@ def percent(decimal):
 
 @register.inclusion_tag('youtube/tagtemplate/test.html')
 def show_progress(number):
-    return {'number': number}
-
-
-@register.inclusion_tag('youtube/tagtemplate/test.html')
-def show_winner(video1, video2):
-    return {'number': number}
-
-
-@register.inclusion_tag('youtube/tagtemplate/test.html')
-def compare(video1, video2):
     return {'number': number}

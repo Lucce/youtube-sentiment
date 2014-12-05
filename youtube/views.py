@@ -1,45 +1,41 @@
 from __future__ import division
+
 from django.shortcuts import render
-from youtube import util
-import pygal
-from pygal.style import CleanStyle
-import numpy as np
 import gdata
-from youtube.models import Video
-from youtube.models import Category
-from youtube.models import Comment
 from django.utils.html import escape
-from django.utils import dateparse
-import cProfile
-import pylab as pl
-from sklearn import linear_model
 from pytagcloud import create_tag_image
 from django.conf import settings
 
-from collections import Counter
+from youtube import util
+from youtube.models import Video
+from youtube.models import Comment
+
 
 # Create your views here.
+
 
 def index(request):
     popular = util.get_most_popularvideos()
     return render(request, 'youtube/index.html', {'popular': popular})
 
+
 def about(request):
     return render(request, 'youtube/about.html')
+
 
 def video(request, video_id):
 
     if Video.objects.filter(id=video_id).exists():
-        video = Video.objects.get(id=video_id)
+        video_obj = Video.objects.get(id=video_id)
 
     else:
         try:
-            video = util.save_video(video_id)
+            video_obj = util.save_video(video_id)
         except gdata.service.RequestError, inst:
             context = {'error': inst[0]}
             return render(request, 'youtube/error.html', context)
 
-    context = {'video_id': video_id, 'video': video}
+    context = {'video_id': video_id, 'video': video_obj}
     return render(request, 'youtube/video.html', context)
 
 
@@ -67,7 +63,6 @@ def compare(request, video1, video2):
         util.savecomments(latest_question_list, video1)
         video_1 = Video.objects.get(id=video1)
 
-    #if Video.objects.filter(id=video2).exists():
     video_2 = Video.objects.get(id=video2)
     if not Comment.objects.filter(video=video2).exists():
         latest_question_list = util.get_comments(video2)
@@ -76,6 +71,7 @@ def compare(request, video1, video2):
 
     context = {'video1': video_1, 'video2': video_2}
     return render(request, 'youtube/compare.html', context)
+
 
 def report(request, video_id):
 
@@ -99,11 +95,13 @@ def report(request, video_id):
 
     return render(request, 'youtube/report.html', context)
 
+
 def regressive_analysis(request):
     cat_data = util.get_total_data()
     chart = util.category_chart(cat_data)
     util.linear_regression(cat_data)
     return render(request, 'youtube/regressive_analysis.html', {'chart': chart})
+
 
 def search(request):
     error = False
@@ -132,7 +130,7 @@ def search(request):
 
                 if 'video1' in request.GET:
                     context['video1'] = escape(request.GET['video1'])
-                    url += "%video1={}".format(context['video1'])
+                    url += "&video1={}".format(context['video1'])
                 if 'video2' in request.GET:
                     context['video2'] = escape(request.GET['video2'])
 
@@ -148,7 +146,3 @@ def search(request):
             return render(request, 'youtube/search.html', context)
 
     return render(request, 'search_form.html', {'error': error})
-
-
-
-

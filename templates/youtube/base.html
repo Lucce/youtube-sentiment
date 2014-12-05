@@ -108,23 +108,7 @@
         });
     });
 </script>
-{#<script>#}
-{#            $(document).ready(function (e) {#}
-{#                // add loading image to div#}
-{#                $('#loading').html('<img src="loading.gif"> loading...');#}
-{##}
-{#                // run ajax request#}
-{#                $.ajax({#}
-{#                    type: "GET",#}
-{#                    dataType: "html",#}
-{#                    url: "http://localhost:8000/youtube/search/?q=hej",#}
-{#                    success: function (d) {#}
-{#                        // replace div's content with returned data#}
-{#                        $('#loading').html(d);#}
-{#                    }#}
-{#                });#}
-{#            });#}
-{#        </script>#}
+
 {% block script %}
 {% endblock %}
 <script type="text/javascript" src="http://kozea.github.com/pygal.js/javascripts/svg.jquery.js"></script>

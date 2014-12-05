@@ -46,14 +46,10 @@
                 <ul>
                     {% for entry in result %}
                         <div class="col-sm-6 col-md-4">
-                            <div class="thumbnail">
+                            <div class="thumbnail video-entry">
                                 <img src=" {{ entry.media.thumbnail.0.url }} ">
 
                                 <div class="caption">
-
-                                    {#                                    {% if compare %}#}
-                                    {#                                    <h4><a href="{% url 'video' entry.id.text|getid %}">{{ entry.media.title.text }}</a></h4>#}
-                                    {#                                    {% endif %}#}
 
                                     {% if compare and not video1 %}
                                         <h4><a href="
@@ -79,11 +75,14 @@
 
 
                                     <ul class="list-unstyled list-inline">
-                                        <li><span class="glyphicon glyphicon-calendar"
-                                                  aria-hidden="true"></span> {{ entry.published.text|getdate }}</li>
+
                                         <li><span class="glyphicon glyphicon-eye-open"
                                                   aria-hidden="true"></span> {{ entry.statistics.view_count|intcomma }}
                                         </li>
+                                        <li><span class="glyphicon glyphicon-calendar"
+                                                  aria-hidden="true"></span> {{ entry.published.text|getdate|naturaltime }}
+                                        </li>
+
                                     </ul>
                                     <p>{{ entry.media.description.text }}</p>
 
