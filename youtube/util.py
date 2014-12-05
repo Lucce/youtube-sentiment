@@ -188,36 +188,48 @@ def create_frequency_list(comments):
     return frequency_list
 
 
-def total_charts():
+def get_total_data():
 
-    data = []
+    cat_temp = [c.id for c in Category.objects.all()]
+    cat_dict = {k: [] for k in cat_temp}
+    for v in Video.objects.all():
+        cat_dict[v.category.id].append((v.score, v.rating))
+
+    return cat_dict
+
+
+def category_chart(cat_dict):
+
     cat_chart = pygal.XY(title=u'Sentiment vs Rating based on category', range=(0,1),
                          style=CleanStyle, disable_xml_declaration=True, stroke=False,
-                         xlabel=u'Sentiment score', ylabel=u'Youtube rating')
+                         x_title=u'Sentiment score', y_title=u'Youtube rating', title_font_size=20)
     for c in Category.objects.all():
-        temp_list = [(v.score, v.rating) for v in Video.objects.filter(category=c)]
-        data += temp_list
-        cat_chart.add(c.id, temp_list)
+        cat_chart.add(c.id, np.around(cat_dict[c.id], decimals=2))
 
+    return cat_chart
+
+
+def linear_regression(cat_dict):
+
+    l = cat_dict.values()
+    data = [item for sublist in l for item in sublist]
     scores = np.array(zip(*data)[0])
     scores_w_intercept = np.array([np.ones(len(scores)), scores]).T
     ratings = np.array(zip(*data)[1])
+
     regr = linear_model.LinearRegression(fit_intercept=False)
     regr.fit(scores_w_intercept, ratings)
-    coef = regr.coef_
     x = np.linspace(0, max(scores), 20)
-    y = x*coef[1]+coef[0]
+    y = x * regr.coef_[1] + regr.coef_[0]
+
     plt.figure()
     plt.title(u'Linear regression on the data')
     plt.xlabel(u'Sentiment score')
     plt.ylabel(u'Youtube rating')
+    plt.axis([0, 1, 0, 1])
     plt.scatter(scores, ratings, marker='x')
-    plt.xlabel('Sentiment score')
-    plt.ylabel('Youtube rating')
     plt.plot(x, y)
     plt.savefig(settings.STATIC_PATH_WINDOWS+'\images\lin_reg.png')
-
-    return cat_chart
 
 
 def video_charts(video_obj, comments):
@@ -230,13 +242,13 @@ def video_charts(video_obj, comments):
     chart_data = np.around(chart_data, decimals=2)
     charts = []
 
-    bar_chart = pygal.Bar(title=u'Afinn sentiment Histrogram', range=(0, 100), style=CleanStyle, disable_xml_declaration=True)
+    bar_chart = pygal.Bar(title=u'Afinn sentiment Histrogram', range=(0, 100), style=CleanStyle, disable_xml_declaration=True, title_font_size=20)
     bar_chart.x_labels = map(str, range(-5, 6))
     bar_chart.y_labels = map(str, range(0, 110, 10))
     bar_chart.add(u'Comment Sentiment', chart_data)
     charts.append(bar_chart)
 
-    pie_chart = pygal.Pie(style=CleanStyle, disable_xml_declaration=True)
+    pie_chart = pygal.Pie(style=CleanStyle, disable_xml_declaration=True, title_font_size=20)
     pie_chart.title = u'Positive vs negative sentiment score (in %)'
     pie_chart.add(u'Positive', score)
     pie_chart.add(u'Negative', 1-score)
