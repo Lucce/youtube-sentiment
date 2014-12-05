@@ -22,6 +22,13 @@
                         </ul>
                     </div>
                     <input type="hidden" name="search_param" value="all" id="search_param">
+
+                    {% if link %}
+                        <input type="hidden" name="compare" value="on" id="search_param">
+                    {% endif %}
+                    {% if link and video1 %}
+                        <input type="hidden" name="video1" value="{{ video1 }}" id="search_param">
+                    {% endif %}
                     <input type="text" class="form-control" name="q" placeholder="Search term...">
                 <span class="input-group-btn">
                     <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-search"></span>
@@ -43,11 +50,36 @@
                                 <img src=" {{ entry.media.thumbnail.0.url }} ">
 
                                 <div class="caption">
-                                    <h4><a href="../video/{{ entry.id.text|getid }}">{{ entry.media.title.text }}</a>
-                                    </h4>
+
+                                    {#                                    {% if compare %}#}
+                                    {#                                    <h4><a href="{% url 'video' entry.id.text|getid %}">{{ entry.media.title.text }}</a></h4>#}
+                                    {#                                    {% endif %}#}
+
+                                    {% if link and not video1 %}
+                                        <h4><a href="
+
+                                                {% url 'search' %}{{ link }}&video1={{ entry.id.text|getid }}">{{ entry.media.title.text }}</a>
+                                        </h4>
+                                    {% elif link and video1 %}
+                                        <h4>
+                                            <a href="{% url 'videos' video1 entry.id.text|getid %}">{{ entry.media.title.text }}</a>
+                                        </h4>
+                                    {% else %}
+
+                                        <h4>
+                                            <a href="{% url 'video' entry.id.text|getid %}">{{ entry.media.title.text }}</a>
+                                        </h4>
+
+                                    {% endif %}
+
+
+
                                     <ul class="list-unstyled list-inline">
-                                        <li><span class="glyphicon glyphicon-calendar" aria-hidden="true"></span> {{ entry.published.text|getdate }}</li>
-                                        <li><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> {{ entry.statistics.view_count|intcomma }}</li>
+                                        <li><span class="glyphicon glyphicon-calendar"
+                                                  aria-hidden="true"></span> {{ entry.published.text|getdate }}</li>
+                                        <li><span class="glyphicon glyphicon-eye-open"
+                                                  aria-hidden="true"></span> {{ entry.statistics.view_count|intcomma }}
+                                        </li>
                                     </ul>
                                     <p>{{ entry.media.description.text }}</p>
 
