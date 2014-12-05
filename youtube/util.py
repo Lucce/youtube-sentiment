@@ -113,7 +113,6 @@ def labmt_sentiment(input):
     sum_value = sum(sentiment_words.values())
     return sum([(happy_dict[word] * (freq / sum_value)) for word, freq in sentiment_words.iteritems()])
 
-def get_comments(video_id, index=1, max_entry=800):
 
 def get_comments(video_id, index=1, max_entry=800):
     yt_service = gdata.youtube.service.YouTubeService()
@@ -192,7 +191,6 @@ def create_frequency_list(comments):
 
 
 def get_total_data():
-
     cat_temp = [c.id for c in Category.objects.all()]
     cat_dict = {k: [] for k in cat_temp}
     for v in Video.objects.all():
@@ -202,8 +200,7 @@ def get_total_data():
 
 
 def category_chart(cat_dict):
-
-    cat_chart = pygal.XY(title=u'Sentiment vs Rating based on category', range=(0,1),
+    cat_chart = pygal.XY(title=u'Sentiment vs Rating based on category', range=(0, 1),
                          style=CleanStyle, disable_xml_declaration=True, stroke=False,
                          x_title=u'Sentiment score', y_title=u'Youtube rating', title_font_size=20)
     for c in Category.objects.all():
@@ -213,7 +210,6 @@ def category_chart(cat_dict):
 
 
 def linear_regression(cat_dict):
-
     l = cat_dict.values()
     data = [item for sublist in l for item in sublist]
     scores = np.array(zip(*data)[0])
@@ -232,20 +228,20 @@ def linear_regression(cat_dict):
     plt.axis([0, 1, 0, 1])
     plt.scatter(scores, ratings, marker='x')
     plt.plot(x, y)
-    plt.savefig(settings.STATIC_PATH_WINDOWS+'\images\lin_reg.png')
+    plt.savefig(settings.STATIC_PATH_WINDOWS + '\images\lin_reg.png')
 
 
 def video_charts(video_obj, comments):
-
     score = np.around(video_obj.score, decimals=2)
-    score_list = comments.values_list('afinn_score',flat=True)
+    score_list = comments.values_list('afinn_score', flat=True)
     afinn_score_list = np.array(score_list)
 
     chart_data = np.histogram(afinn_score_list, range=(-5.5, 5.5), bins=11, density=True)[0] * 100
     chart_data = np.around(chart_data, decimals=2)
     charts = []
 
-    bar_chart = pygal.Bar(title=u'Afinn sentiment Histrogram', range=(0, 100), style=CleanStyle, disable_xml_declaration=True, title_font_size=20)
+    bar_chart = pygal.Bar(title=u'Afinn sentiment Histrogram', range=(0, 100), style=CleanStyle,
+                          disable_xml_declaration=True, title_font_size=20)
     bar_chart.x_labels = map(str, range(-5, 6))
     bar_chart.y_labels = map(str, range(0, 110, 10))
     bar_chart.add(u'Comment Sentiment', chart_data)

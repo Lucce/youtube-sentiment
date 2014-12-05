@@ -100,7 +100,6 @@ def report(request, video_id):
     return render(request, 'youtube/report.html', context)
 
 def regressive_analysis(request):
-
     cat_data = util.get_total_data()
     chart = util.category_chart(cat_data)
     util.linear_regression(cat_data)
@@ -108,7 +107,7 @@ def regressive_analysis(request):
 
 def search(request):
     error = False
-    print "compare"
+
     page = 1
     if 'page' in request.GET:
         page = request.GET['page']
@@ -122,10 +121,11 @@ def search(request):
             result = util.searchresult(q, page=page)
 
             context = {'result': result, 'query': q, 'page': page}
+
             url = "?q={}".format(q)
 
             if 'compare' in request.GET:
-                print "compare"
+
                 url += "&compare=on"
 
                 context['compare'] = request.GET['compare']

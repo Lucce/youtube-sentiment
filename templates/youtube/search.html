@@ -55,14 +55,14 @@
                                     {#                                    <h4><a href="{% url 'video' entry.id.text|getid %}">{{ entry.media.title.text }}</a></h4>#}
                                     {#                                    {% endif %}#}
 
-                                    {% if link and not video1 %}
+                                    {% if compare and not video1 %}
                                         <h4><a href="
 
 
                                                 {% url 'search' %}{{ link }}&video1={{ entry.id.text|getid }}">{{ entry.media.title.text }}</a>
 
                                         </h4>
-                                    {% elif link and video1 %}
+                                    {% elif compare and video1 %}
                                         <h4>
                                             <a href="{% url 'videos' video1 entry.id.text|getid %}">{{ entry.media.title.text }}</a>
 
