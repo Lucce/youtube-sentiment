@@ -1,5 +1,7 @@
 from __future__ import division
 
+import os
+
 from django.shortcuts import render
 import gdata
 from django.utils.html import escape
@@ -9,6 +11,8 @@ from django.conf import settings
 from youtube import util
 from youtube.models import Video
 from youtube.models import Comment
+
+
 
 
 # Create your views here.
@@ -27,11 +31,11 @@ def video(request, video_id):
 
     if Video.objects.filter(id=video_id).exists():
         video_obj = Video.objects.get(id=video_id)
-
     else:
         try:
             video_obj = util.save_video(video_id)
         except gdata.service.RequestError, inst:
+
             context = {'error': inst[0]}
             return render(request, 'youtube/error.html', context)
 
@@ -84,12 +88,14 @@ def report(request, video_id):
 
     comments = Comment.objects.filter(video=video_obj)
 
+
     charts = util.video_charts(video_obj, comments)
 
     frequency_list = util.create_frequency_list(comments)
     tags = util.tag_them(frequency_list, maxsize=120)
-    create_tag_image(tags, settings.STATIC_PATH_WINDOWS + '\images\cloud.png', size=(600, 450))
-    # create_html_data(tags, size=(900, 600))
+
+    path = os.path.join(settings.STATIC_PATH, 'youtube', 'tagcloud', '{0}.png'.format(video_id))
+    create_tag_image(tags, path, size=(600, 450))
 
     context = {'video_id': video_id, 'result': comments, 'charts': charts}
 
@@ -99,28 +105,40 @@ def report(request, video_id):
 def regressive_analysis(request):
     cat_data = util.get_total_data()
     chart = util.category_chart(cat_data)
-    util.linear_regression(cat_data)
-    return render(request, 'youtube/regressive_analysis.html', {'chart': chart})
+    image = util.linear_regression(cat_data)
+    return render(request, 'youtube/regressive_analysis.html', {'chart': chart, 'image': image})
 
 
 def search(request):
     error = False
-
     page = 1
-    if 'page' in request.GET:
-        page = request.GET['page']
-        page = int(page)
+    sort = 'relevance'
 
     if 'q' in request.GET:
         q = request.GET['q']
+
         if not q:
             error = True
         else:
-            result = util.searchresult(q, page=page)
 
-            context = {'result': result, 'query': q, 'page': page}
+            if 'page' in request.GET:
+                try:
+                    page = int(request.GET['page'])
+                    if page > 20:
+                        page = 1
+                except ValueError:
+                    page = 1
 
-            url = "?q={}".format(q)
+            if 'sort' in request.GET:
+                sorting = escape(request.GET['sort'])
+                if sorting in ['viewCount', 'published', 'relevance', 'rating']:
+                    sort = sorting
+
+            result = util.searchresult(q, page=page, sort=sort)
+
+            context = {'result': result, 'query': q, 'page': page, 'sort': sort}
+
+            url = "?q={query}&sort={sort}".format(query=q, sort=sort)
 
             if 'compare' in request.GET:
 
@@ -133,8 +151,6 @@ def search(request):
                     url += "&video1={}".format(context['video1'])
                 if 'video2' in request.GET:
                     context['video2'] = escape(request.GET['video2'])
-
-                print url
 
                 context['link'] = url
 

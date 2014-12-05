@@ -6,38 +6,9 @@
 
 {% block content %}
 
-    <div class="row">
-        <div class="col-xs-8 col-xs-offset-2">
-            <form action="{% url 'search' %}" method="get" role="search">
-                <div class="input-group">
-                    <div class="input-group-btn search-panel">
-                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                            <span id="search_concept">relevancy</span> <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu" role="menu">
-                            <li><a href="#published">published</a></li>
-                            <li><a href="#viewCount">viewcount</a></li>
-                            <li class="divider"></li>
-                            <li><a href="#all">relevancy</a></li>
-                        </ul>
-                    </div>
-                    <input type="hidden" name="search_param" value="all" id="search_param">
 
-                    {% if link %}
-                        <input type="hidden" name="compare" value="on" id="search_param">
-                    {% endif %}
-                    {% if link and video1 %}
-                        <input type="hidden" name="video1" value="{{ video1 }}" id="search_param">
-                    {% endif %}
-                    <input type="text" class="form-control" name="q" placeholder="Search term...">
-                <span class="input-group-btn">
-                    <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-search"></span>
-                    </button>
-                </span>
-                </div>
-            </form>
-        </div>
-    </div>
+    {% get_search %}
+
 
     <div class="row">
 
@@ -95,6 +66,9 @@
                     {% endfor %}
                 </ul>
                 <nav>
+                    <div class="text-center">
+
+
                     <ul class="pagination">
                         {% for i in "xxxxxxxxxxxxxxxxxxxx" %}
                             <li {% if page == forloop.counter0|add:"1" %}class="active"{% endif %}><a
@@ -102,6 +76,7 @@
                             </li>
                         {% endfor %}
                     </ul>
+                    </div>
                 </nav>
             {% else %}
                 <p>No polls are available.</p>

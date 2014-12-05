@@ -15,7 +15,13 @@
                 </div>
             {% endif %}
 
-            <div class="col-md-4">
+            {% if image %}
+                <div class="col-md-7">
+                    <img src="data:image/png;base64,{{ image|safe }}"/>
+                </div>
+            {% endif %}
+
+            <div class="col-md-4 thumbnail">
                 <img src="{% static "images/lin_reg.png" %}" alt="Tag cloud" width=600/>
             </div>
         </div>

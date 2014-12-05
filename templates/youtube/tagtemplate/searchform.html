@@ -1,0 +1,35 @@
+<div class="row">
+    <div class="col-xs-8 col-xs-offset-2">
+        <form action="{% url 'search' %}" method="get" role="search" style="margin-bottom: 40px;">
+            <div class="input-group">
+                <div class="input-group-btn search-panel">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                        <span id="search_concept">Relevancy</span> <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#rating">rating</a></li>
+                        <li><a href="#viewCount">viewCount</a></li>
+                        <li><a href="#published">published</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#relevance">relevance</a></li>
+                    </ul>
+                </div>
+                    <span class="input-group-addon">
+                                compare <input type="checkbox" name="compare">
+                    </span>
+                <input type="hidden" name="sort" value="relevance" id="search_param">
+                <input type="text" class="form-control" name="q" placeholder="Search video...">
+                {% if compare %}
+                    <input type="hidden" name="compare" value="on" id="search_param">
+                {% endif %}
+                {% if compare and video1 %}
+                    <input type="hidden" name="video1" value="{{ video1 }}" id="search_param">
+                {% endif %}
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-search"></span>
+                    </button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>

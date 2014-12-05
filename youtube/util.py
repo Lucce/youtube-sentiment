@@ -21,38 +21,37 @@ import pygal
 from pytagcloud import defscale
 from pygame import Color
 from sklearn import linear_model
-from matplotlib import pyplot as plt
+import matplotlib
+
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from django.conf import settings
 from collections import Counter
+from gdata.youtube.service import YouTubeService
+from django.core.files.storage import FileSystemStorage
+
+fs = FileSystemStorage(location='/media/photos')
+import StringIO
+import urllib, base64
+
 
 from nltk.tokenize import RegexpTokenizer
 
 tokenizer = RegexpTokenizer(r'\w+')
 
-
-def get_wordlist():
-    filename_afinn = 'AFINN-111.txt'
-    afinn = dict(map(lambda (w, s): (w, int(s)),
-                     [ws.strip().split('\t') for ws in codecs.open(filename_afinn, 'r', encoding='utf-8')]))
-    return afinn
-
-
-def connect_youtube():
-    try:
-        return gdata.youtube.service.YouTubeService()
-    except gdata.service.RequestError, inst:
-        error = inst[0]
+filename_afinn = 'AFINN-111.txt'
+afinn = dict(map(lambda (w, s): (w, int(s)),
+                 [ws.strip().split('\t') for ws in codecs.open(filename_afinn, 'r', encoding='utf-8')]))
 
 
 def save_video(video_id):
-    yt_service = connect_youtube()
+    yt_service = YouTubeService()
 
     try:
         video_details = yt_service.GetYouTubeVideoEntry(video_id=video_id)
+
     except gdata.service.RequestError, inst:
         raise
-        # error = inst[0]
-        # context = {'message': video_id, 'error': error}
 
     category = Category.objects.get_or_create(id=video_details.media.category[0].text)
 
@@ -61,8 +60,6 @@ def save_video(video_id):
     if video_details.rating:
         rating = (float(video_details.rating.average) - float(video_details.rating.min)) / \
                  (float(video_details.rating.max) - 1)
-
-        print "video percent rating: {}".format(rating)
 
     video, new = Video.objects.get_or_create(id=video_id,
                                              category=category[0],
@@ -77,7 +74,6 @@ def save_video(video_id):
 
 
 def afinn_sentiment(text):
-    afinn = get_wordlist()
 
     text = text.decode('utf-8')
     text = text.replace('\ufeff', "")
@@ -102,23 +98,23 @@ def get_comments(video_id, index=1, max_entry=800):
 
     url = comment_feed(id=video_id, index=index)
 
-    # comment_feed = yt_service.GetYouTubeVideoCommentFeed(url)
-
     comments = []
     counter = 0
 
     while url and counter < max_entry:
-        comment_feed = yt_service.GetYouTubeVideoCommentFeed(url)
+
+        try:
+            comment_feed = yt_service.GetYouTubeVideoCommentFeed(url)
+        except gdata.service.RequestError, inst:
+            comments = list()
+            return comments
 
         comments.extend([comment for comment in comment_feed.entry if comment.content.text is not None])
 
         counter = len(comments)
 
-        print counter
-
         if comment_feed.GetNextLink() is not None:
             url = comment_feed.GetNextLink().href
-            print url
         else:
             url = False
 
@@ -156,13 +152,7 @@ def savecomments(comments, video_id):
 
 
 def create_frequency_list(comments):
-
-    afinn = get_wordlist()
-    text = ''
-    for comment in comments:
-        text += comment.text
-
-    text.strip().lower()
+    text = " ".join(comments.values_list('text', flat=True)).lower()
     words = tokenizer.tokenize(text)
 
     count = Counter(words)
@@ -173,8 +163,10 @@ def create_frequency_list(comments):
 
 
 def get_total_data():
+
     cat_temp = [c.id for c in Category.objects.all()]
     cat_dict = {k: [] for k in cat_temp}
+
     for v in Video.objects.all():
         cat_dict[v.category.id].append((v.score, v.rating))
 
@@ -212,6 +204,12 @@ def linear_regression(cat_dict):
     plt.plot(x, y)
     plt.savefig(settings.STATIC_PATH_WINDOWS + '\images\lin_reg.png')
 
+    imgdata = StringIO.StringIO()
+    plt.savefig(imgdata, format='png')
+    imgdata.seek(0)
+
+    return urllib.quote(base64.b64encode(imgdata.buf))
+
 
 def video_charts(video_obj, comments):
     score = np.around(video_obj.score, decimals=2)
@@ -245,13 +243,13 @@ def get_most_popularvideos():
     return feed.entry
 
 
-def searchresult(search_terms, page=1):
-    print page
+def searchresult(search_terms, sort='relevance', page=1):
+
     yt_service = gdata.youtube.service.YouTubeService()
 
     query = gdata.youtube.service.YouTubeVideoQuery()
     query.vq = search_terms
-    query.orderby = 'relevance'
+    query.orderby = sort
     query.racy = 'include'
     query.max_results = 24
     query.start_index = 1 + (24 * (page - 1))
@@ -264,7 +262,7 @@ def searchresult(search_terms, page=1):
 
 def tag_them(wordcounts, minsize=3, maxsize=36, average=0):
     counts = [tag[1] for tag in wordcounts]
-    dictionary = get_wordlist()
+    dictionary = afinn
     if not len(counts):
         return []
 
@@ -276,11 +274,3 @@ def tag_them(wordcounts, minsize=3, maxsize=36, average=0):
         tags.append({'color': color, 'size': defscale(word_count[1], mincount, maxcount, minsize, maxsize),
                      'tag': word_count[0]})
     return tags
-
-
-if __name__ == "__main__":
-    string = unicode(
-        "what the fuck is wrong with you people saying we should beat her/rape her/kill her a kid, you dont have to like what she's doing but thats so fucked up").lower()
-
-    print "afinn result"
-    print afinn_sentiment(string)

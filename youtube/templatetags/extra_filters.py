@@ -40,3 +40,8 @@ def percent(decimal):
 @register.inclusion_tag('youtube/tagtemplate/test.html')
 def show_progress(number):
     return {'number': number}
+
+
+@register.inclusion_tag('youtube/tagtemplate/searchform.html', takes_context=True)
+def get_search(context):
+    return context

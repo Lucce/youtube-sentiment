@@ -13,9 +13,12 @@
                 </div>
                 {% endfor %}
             {% endif %}
+
             <div class="col-md-6 col-md-offset-3 thumbnail">
-                <img src="{% static "images/cloud.png" %}" alt="Tag cloud"/>
+                <img src="{% static "youtube/tagcloud/" %}{{ video_id }}.png" alt="Tag cloud"/>
             </div>
+
+
             {% if result %}
                 <ul>
                     {% for entry in result %}

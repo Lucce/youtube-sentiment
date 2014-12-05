@@ -4,6 +4,11 @@
     overflow: hidden;
 }
 
+.stat {
+    font-size: 20px;
+    padding: 10px;
+}
+
 
 .video-entry:after {
 content: "";
