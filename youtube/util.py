@@ -18,7 +18,12 @@ from django.utils import dateparse
 from pygal.style import CleanStyle
 import numpy as np
 import pygal
-
+import simplejson
+from pytagcloud import defscale
+from pygame import Color
+from sklearn import linear_model
+from matplotlib import pyplot as plt
+from django.conf import settings
 from collections import Counter
 
 from nltk.tokenize import RegexpTokenizer
@@ -170,8 +175,57 @@ def savecomments(comments, video_id):
     data = set(data)
     Comment.objects.bulk_create(data)
 
+def create_frequency_list(comments):
+
+    afinn = get_wordlist()
+    text = ''
+    for comment in comments:
+        text += comment.text
+
+    text.strip().lower()
+    words = tokenizer.tokenize(text)
+
+    count = Counter(words)
+    intersection = afinn.viewkeys() & count.viewkeys()
+    frequency_list = [(word,count[word]) for word in intersection if count[word] > 1]
+
+    return frequency_list
+
+
+def total_charts():
+
+    data = []
+    cat_chart = pygal.XY(title=u'Sentiment vs Rating based on category', range=(0,1),
+                         style=CleanStyle, disable_xml_declaration=True, stroke=False,
+                         xlabel=u'Sentiment score', ylabel=u'Youtube rating')
+    for c in Category.objects.all():
+        temp_list = [(v.score, v.rating) for v in Video.objects.filter(category=c)]
+        data += temp_list
+        cat_chart.add(c.id, temp_list)
+
+    scores = np.array(zip(*data)[0])
+    scores_w_intercept = np.array([np.ones(len(scores)), scores]).T
+    ratings = np.array(zip(*data)[1])
+    regr = linear_model.LinearRegression(fit_intercept=False)
+    regr.fit(scores_w_intercept, ratings)
+    coef = regr.coef_
+    x = np.linspace(0, max(scores), 20)
+    y = x*coef[1]+coef[0]
+    plt.figure()
+    plt.title(u'Linear regression on the data')
+    plt.xlabel(u'Sentiment score')
+    plt.ylabel(u'Youtube rating')
+    plt.scatter(scores, ratings, marker='x')
+    plt.xlabel('Sentiment score')
+    plt.ylabel('Youtube rating')
+    plt.plot(x, y)
+    plt.savefig(settings.STATIC_PATH_WINDOWS+'\images\lin_reg.png')
+
+    return cat_chart
+
+
 def video_charts(video_obj, comments):
-    print video_obj.score
+
     score = np.around(video_obj.score, decimals=2)
     score_list = comments.values_list('afinn_score',flat=True)
     afinn_score_list = np.array(score_list)
@@ -183,17 +237,13 @@ def video_charts(video_obj, comments):
     bar_chart = pygal.Bar(title=u'Afinn sentiment Histrogram', range=(0, 100), style=CleanStyle, disable_xml_declaration=True)
     bar_chart.x_labels = map(str, range(-5, 6))
     bar_chart.y_labels = map(str, range(0, 110, 10))
-    bar_chart.add('Comment Sentiment', chart_data)
+    bar_chart.add(u'Comment Sentiment', chart_data)
     charts.append(bar_chart)
 
     pie_chart = pygal.Pie(style=CleanStyle, disable_xml_declaration=True)
-    pie_chart.title = 'Browser usage in February 2012 (in %)'
-    pie_chart.add('Positive', score)
-
-    print score
-    print 1 - score
-
-    pie_chart.add('Negative', 1-score)
+    pie_chart.title = u'Positive vs negative sentiment score (in %)'
+    pie_chart.add(u'Positive', score)
+    pie_chart.add(u'Negative', 1-score)
     charts.append(pie_chart)
 
     return charts
@@ -220,6 +270,22 @@ def searchresult(search_terms,page=1):
     feed = result.entry
 
     return feed
+
+def tag_them(wordcounts, minsize=3, maxsize=36, average=0):
+
+    counts = [tag[1] for tag in wordcounts]
+    dictionary = get_wordlist()
+    if not len(counts):
+        return []
+
+    maxcount = max(counts)
+    mincount = min(counts)
+    tags = []
+    for word_count in wordcounts:
+        color = Color(0, 255, 0) if (dictionary[word_count[0]] > average) else Color(255, 0, 0)
+        tags.append({'color': color, 'size': defscale(word_count[1], mincount, maxcount, minsize, maxsize),
+                     'tag': word_count[0]})
+    return tags
 
 if __name__ == "__main__":
 

@@ -13,6 +13,8 @@ from django.utils import dateparse
 import cProfile
 import pylab as pl
 from sklearn import linear_model
+from pytagcloud import create_tag_image
+from django.conf import settings
 
 from collections import Counter
 
@@ -85,24 +87,33 @@ def report(request, video_id):
         video_obj = Video.objects.get(id=video_id)
 
     comments = Comment.objects.filter(video=video_obj)
-    comments
+
     charts = util.video_charts(video_obj, comments)
+
+    frequency_list = util.create_frequency_list(comments)
+    tags = util.tag_them(frequency_list, maxsize=120)
+    create_tag_image(tags, settings.STATIC_PATH_WINDOWS+'\images\cloud.png', size=(600, 450))
+    # create_html_data(tags, size=(900, 600))
 
     context = {'video_id': video_id, 'result': comments, 'charts': charts}
 
     return render(request, 'youtube/report.html', context)
 
+def regressive_analysis(request):
+
+    chart = util.total_charts()
+    return render(request, 'youtube/regressive_analysis.html', {'chart': chart})
+
 def search(request):
     error = False
-
 
     if 'q' in request.GET:
         q = request.GET['q']
         if not q:
             error = True
         else:
-
             result = util.searchresult(q)
+            return render(request, 'youtube/search.html', {'result': result, 'query': q})
 
             context = {'result': result, 'query': q}
 
