@@ -3,6 +3,7 @@ import gdata.youtube.service
 import gdata
 gdata.service.RequestError
 import sys
+from gdata.youtube.service import
 
 print dateparse.parse_datetime("2011-11-11T18:37:24.000Z")
 
@@ -10,6 +11,7 @@ yt_service = gdata.youtube.service.YouTubeService()
 
 try:
   video_details = yt_service.GetYouTubeVideoEntry(video_id="l6lYFO_tKlE")
+  gdata.GDataFeedFromString
 except gdata.service.RequestError, inst:
   response = inst[0]
   print response
@@ -20,3 +22,4 @@ except gdata.service.RequestError, inst:
 
 print "test"
 print video_details
+

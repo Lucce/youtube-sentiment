@@ -1,0 +1,60 @@
+{% load extra_filters %}
+{% load humanize %}
+{% load staticfiles %}
+<div class="row">
+    {% if video2 %}
+        <div class="col-md-6">
+
+
+            <h2>View Count
+                {% if video1.view_count > video2.view_count %}
+                    <span class="label label-success">Winner</span>
+                {% endif %}</h2>
+
+            <h3>{{ video1.view_count|intcomma }}</h3>
+
+
+            <h2>Rating
+                {% if video1.rating > video2.rating %}
+                    <span class="label label-success">Winner</span>
+                {% endif %}
+            </h2>
+
+            {% show_progress video1.rating|percent %}
+
+            <h2>sentiment
+                {% if video1.score > video2.score %}
+                    <span class="label label-success">Winner</span>
+                {% endif %}</h2>
+            {% show_progress video1.score|percent %}
+
+        </div>
+    {% endif %}
+
+    {% if video2 %}
+        <div class="col-md-6">
+            <h2>View Count
+                {% if video2.view_count > video1.view_count %}
+                    <span class="label label-success">Winner</span>
+                {% endif %}</h2>
+
+            <h3>{{ video2.view_count|intcomma }}</h3>
+
+
+            <h2>Rating
+                {% if video2.rating > video1.rating %}
+                    <span class="label label-success">Winner</span>
+                {% endif %}
+            </h2>
+
+            {% show_progress video2.rating|percent %}
+
+            <h2>sentiment
+                {% if video2.score > video1.score %}
+                    <span class="label label-success">Winner</span>
+                {% endif %}</h2>
+            {% show_progress video2.score|percent %}
+
+        </div>
+    {% endif %}
+</div>

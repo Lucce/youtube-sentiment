@@ -1,0 +1,61 @@
+{% extends 'youtube/base.html' %}
+{% load extra_filters %}
+{% load humanize %}
+{% load staticfiles %}
+
+{% block title %} YouPy Report Loading {% endblock %}
+
+{% block content %}
+    <div class="row">
+        {% if video1 %}
+            <div class="col-md-6">
+                <h1>{{ video1.title }}</h1>
+
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe src="http://www.youtube.com/embed/{{ video1.id }}"></iframe>
+                </div>
+
+            </div>
+        {% endif %}
+
+        {% if video2 %}
+            <div class="col-md-6">
+                <h1>{{ video2.title }}</h1>
+
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe src="http://www.youtube.com/embed/{{ video2.id }}"></iframe>
+                </div>
+
+            </div>
+        {% endif %}
+
+        {% if error %}
+            <h1>{{ error.body }}</h1>
+        {% endif %}
+
+
+    </div>
+    <div id="loading"></div>
+{% endblock %}
+
+{% block script %}
+    {% if video1 and video2 %}
+        <script>
+            $(document).ready(function (e) {
+                // add loading image to div
+                $('#loading').html('<h1 style="margin:auto; display:block; text-align:center;">Generating Report</h1><img style="margin:auto; display:block;" src=" {% static 'youtube/images/loading.GIF' %}"> ');
+
+                // run ajax request
+                $.ajax({
+                    type: "GET",
+                    dataType: "html",
+                    url: "{% url 'compare' video1.id video2.id %}",
+                    success: function (d) {
+                        // replace div's content with returned data
+                        $('#loading').html(d);
+                    }
+                });
+            });
+        </script>
+    {% endif %}
+{% endblock %}

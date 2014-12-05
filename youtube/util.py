@@ -52,10 +52,13 @@ def save_video(video_id):
     try:
         video_details = yt_service.GetYouTubeVideoEntry(video_id=video_id)
     except gdata.service.RequestError, inst:
-        error = inst[0]
-        context = {'message': video_id, 'error': error}
+        raise
+        # error = inst[0]
+        # context = {'message': video_id, 'error': error}
 
     category = Category.objects.get_or_create(id=video_details.media.category[0].text)
+
+    rating = 0
 
     if video_details.rating:
         rating = (float(video_details.rating.average) - float(video_details.rating.min)) / (float(video_details.rating.max)-1)
@@ -160,14 +163,15 @@ def savecomments(comments, video_id):
         if afinn_score < 0:
             negative_count += 1
 
-    temp_video.score = float(positive_count)/(positive_count+negative_count)
-    temp_video.save()
+    if (negative_count + positive_count) > 0:
+        temp_video.score = float(positive_count) / (positive_count + negative_count)
+        temp_video.save()
 
     data = set(data)
     Comment.objects.bulk_create(data)
 
 def video_charts(video_obj, comments):
-
+    print video_obj.score
     score = np.around(video_obj.score, decimals=2)
     score_list = comments.values_list('afinn_score',flat=True)
     afinn_score_list = np.array(score_list)
@@ -185,6 +189,10 @@ def video_charts(video_obj, comments):
     pie_chart = pygal.Pie(style=CleanStyle, disable_xml_declaration=True)
     pie_chart.title = 'Browser usage in February 2012 (in %)'
     pie_chart.add('Positive', score)
+
+    print score
+    print 1 - score
+
     pie_chart.add('Negative', 1-score)
     charts.append(pie_chart)
 
@@ -204,7 +212,7 @@ def searchresult(search_terms,page=1):
 
     query = gdata.youtube.service.YouTubeVideoQuery()
     query.vq = search_terms
-    query.orderby = 'viewCount'
+    query.orderby = 'relevance'
     query.racy = 'include'
     query.max_results = 50
 

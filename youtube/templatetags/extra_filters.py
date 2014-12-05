@@ -32,3 +32,18 @@ def cut(text,n):
 @stringfilter
 def percent(decimal):
     return float(decimal) * 100
+
+
+@register.inclusion_tag('youtube/tagtemplate/test.html')
+def show_progress(number):
+    return {'number': number}
+
+
+@register.inclusion_tag('youtube/tagtemplate/test.html')
+def show_winner(video1, video2):
+    return {'number': number}
+
+
+@register.inclusion_tag('youtube/tagtemplate/test.html')
+def compare(video1, video2):
+    return {'number': number}
